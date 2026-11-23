@@ -1,0 +1,27 @@
+{
+  "name": "TIS Academy — BCS Preparation & MCQ",
+  "short_name": "TIS BCS Prep",
+  "description": "BCS preliminary MCQ exam simulator and practice app (10th–50th BCS) with subject- and topic-wise analysis.",
+  "id": "./",
+  "start_url": "./index.html#/",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f4f6f9",
+  "theme_color": "#1e8037",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Exam Mode", "short_name": "Exam", "url": "./index.html#/exam/setup", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Practice Mode", "short_name": "Practice", "url": "./index.html#/practice", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Progress", "short_name": "Progress", "url": "./index.html#/progress", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "About the Author", "short_name": "About", "url": "./index.html#/about", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

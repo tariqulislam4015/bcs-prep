@@ -1,0 +1,38 @@
+{
+  "questions": [
+    {
+      "id": "MY-0001",
+      "bcs": null,
+      "subject": "math",
+      "topic": "Percentage",
+      "question": "What is 25% of 80?",
+      "options": [
+        "15",
+        "20",
+        "25",
+        "30"
+      ],
+      "answer": "B",
+      "explanation": "25% of 80 = 0.25 × 80 = 20.",
+      "verified": false,
+      "source_note": "Example — replace with your own"
+    },
+    {
+      "id": "MY-0002",
+      "bcs": 44,
+      "subject": "english",
+      "topic": "Grammar – Voice",
+      "question": "<paste the exact question text here>",
+      "options": [
+        "<A>",
+        "<B>",
+        "<C>",
+        "<D>"
+      ],
+      "answer": "A",
+      "explanation": "<explanation>",
+      "verified": false,
+      "source_note": "<where you verified it>"
+    }
+  ]
+}

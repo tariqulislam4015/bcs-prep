@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1e8037" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#171e29" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TIS BCS Prep">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>TIS Academy — BCS Preparation &amp; MCQ Platform</title>
+  <meta name="description" content="BCS preliminary MCQ exam simulator and practice platform (10th–50th BCS) with subject- and topic-wise analysis.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+</head>
+<body>
+  <a class="skip" href="#view">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="Toggle navigation">☰</button>
+    <a class="brand" href="#/">
+      <img class="brand-logo" src="assets/tis-logo.jpg" alt="TIS Academy logo" width="40" height="40">
+      <span class="brand-text"><b>TIS Academy</b><small>BCS Preparation &amp; MCQ</small></span>
+    </a>
+    <span class="spacer"></span>
+    <button class="btn btn-sm btn-primary install-btn" id="install-btn" hidden>⤓ Install app</button>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme"><span class="sun">☀</span><span class="moon">☾</span></button>
+  </header>
+
+  <div class="shell">
+    <nav class="nav" aria-label="Main">
+      <a href="#/" data-nav="dashboard"><span class="ni">◧</span>Dashboard</a>
+      <a href="#/exam/setup" data-nav="exam"><span class="ni">⏱</span>Exam Mode</a>
+      <a href="#/practice" data-nav="practice"><span class="ni">✎</span>Practice Mode</a>
+      <a href="#/bank" data-nav="bank"><span class="ni">☰</span>Question Bank</a>
+      <a href="#/analysis" data-nav="analysis"><span class="ni">▤</span>Analysis</a>
+      <a href="#/progress" data-nav="progress"><span class="ni">↗</span>Progress</a>
+      <a href="#/history" data-nav="history"><span class="ni">⧗</span>Exam History</a>
+      <a href="#/settings" data-nav="settings"><span class="ni">⚙</span>Settings &amp; Data</a>
+      <a href="#/about" data-nav="about"><span class="ni">☺</span>About the Author</a>
+      <div class="nav-foot"><div id="nav-profile"></div><div class="muted small">Data is saved on this device.<br>Export a backup in Settings.</div></div>
+    </nav>
+    <div class="nav-scrim" onclick="document.body.classList.remove('nav-open')"></div>
+
+    <main class="main">
+      <div id="update-bar" class="update-bar" hidden><span>A new version of the app is available.</span><button class="btn btn-sm btn-primary">Update now</button></div>
+      <div id="exam-banner" class="exam-banner" hidden></div>
+      <div id="view" class="view" tabindex="-1"><noscript>This application needs JavaScript enabled.</noscript></div>
+    </main>
+  </div>
+
+  <!-- Mobile bottom tab bar -->
+  <nav class="tabbar" aria-label="Quick navigation">
+    <a href="#/" data-nav="dashboard"><span>◧</span>Home</a>
+    <a href="#/exam/setup" data-nav="exam"><span>⏱</span>Exam</a>
+    <a href="#/practice" data-nav="practice"><span>✎</span>Practice</a>
+    <a href="#/analysis" data-nav="analysis"><span>▤</span>Analysis</a>
+    <a href="#/progress" data-nav="progress"><span>↗</span>Progress</a>
+  </nav>
+
+  <!-- Data -->
+  <script src="js/data/config.js"></script>
+  <script src="js/data/questions.sample.js"></script>
+  <!-- Core -->
+  <script src="js/core/ui.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/qbank.js"></script>
+  <script src="js/core/stats.js"></script>
+  <script src="js/core/charts.js"></script>
+  <!-- Shell + views -->
+  <script src="js/pwa.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/exam.js"></script>
+  <script src="js/views/practice.js"></script>
+  <script src="js/views/bank.js"></script>
+  <script src="js/views/analysis.js"></script>
+  <script src="js/views/progress.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/views/profile.js"></script>
+</body>
+</html>
