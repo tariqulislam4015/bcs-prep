@@ -4,9 +4,25 @@
 
 BCS প্রিলিমিনারি প্রস্তুতির জন্য একটি সম্পূর্ণ অ্যাপ (১০ম–৫০তম BCS)। এটি একটি **PWA (Progressive Web App)**। GitHub-এ আপলোড করলে **PC/Laptop-এ লিংক দিয়ে সরাসরি LIVE চলবে**, আর **মোবাইলে অ্যাপের মতো ইনস্টল হবে** (হোম স্ক্রিনে আইকন, ফুল-স্ক্রিন, ইন্টারনেট ছাড়াও চলে)।
 
+## 🔗 সরাসরি লিংক
+
+| | লিংক |
+|---|---|
+| 🌐 **LIVE ওয়েবসাইট** (লগইন লাগে না) | https://tariqulislam4015.github.io/bcs-prep/ |
+| 📱 **Android APK** | https://tariqulislam4015.github.io/bcs-prep/downloads/TIS-BCS-Prep.apk |
+| 📦 APK (GitHub Release) | https://github.com/tariqulislam4015/bcs-prep/releases/latest/download/TIS-BCS-Prep.apk |
+
+প্রতিবার `main`-এ push করলে GitHub Actions নিজে থেকেই নতুন APK বানায় এবং LIVE সাইট আপডেট করে (`.github/workflows/build-and-deploy.yml`)।
+এক-বারের সেটআপ: **Settings → Pages → Source: GitHub Actions**।
+
+### APK সাইনিং কী (ঐচ্ছিক, তবে ভালো)
+সাইনিং কী রিপোজিটরিতে রাখা হয় না, কারণ রিপোজিটরিটি পাবলিক। **Settings → Secrets and variables → Actions → New repository secret** থেকে দুটি secret যোগ করুন:
+`ANDROID_KEYSTORE_BASE64` এবং `ANDROID_KEYSTORE_PASSWORD`।
+এগুলো না থাকলেও APK তৈরি হবে, তবে প্রতিবার নতুন অস্থায়ী কী দিয়ে। তখন নতুন ভার্সন ইনস্টল করতে আগেরটি আনইনস্টল করতে হবে (অ্যাপের ডেটা মুছে যাবে, তাই আগে Backup নিন)।
+
 ---
 
-## ১. GitHub-এ আপলোড করে LIVE করার নিয়ম (কোডিং লাগবে না)
+## ১. (পুরনো পদ্ধতি) হাতে আপলোড করে LIVE করার নিয়ম (কোডিং লাগবে না)
 
 1. **github.com**-এ লগইন করুন (অ্যাকাউন্ট না থাকলে ফ্রি অ্যাকাউন্ট খুলুন)।
 2. ডান পাশে উপরে **+ → New repository** চাপুন।
