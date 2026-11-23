@@ -66,6 +66,7 @@
             <li>Works offline and installs as an app on your phone or PC</li>
           </ul>
           <p class="muted small">Your results are saved only on this device. Use Settings → Export backup to keep a copy.</p>
+          ${window.PWA && !PWA.isApp() ? `<div class="apk-card"><div><b>📱 Android app (APK)</b><span class="muted small">After downloading, open the file and allow “Install unknown apps” if your phone asks.</span></div>${PWA.apkButton()}</div>` : ''}
           <div class="actions left"><a class="btn btn-primary" href="#/">Start preparing</a><a class="btn" href="https://www.youtube.com/@tis.academy24" target="_blank" rel="noopener noreferrer">Watch lessons on YouTube ↗</a></div>
         </section>
       </div>`;

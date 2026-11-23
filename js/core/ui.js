@@ -84,6 +84,12 @@
 
   function download(filename, content, mime = 'application/octet-stream') {
     const blob = content instanceof Blob ? content : new Blob([content], { type: mime });
+    if (window.AndroidBridge && window.AndroidBridge.saveFile) {        // inside the Android app
+      const r = new FileReader();
+      r.onload = () => { window.AndroidBridge.saveFile(filename, String(r.result).split(',')[1] || '', blob.type || mime); };
+      r.readAsDataURL(blob);
+      return;
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = filename; document.body.appendChild(a); a.click();

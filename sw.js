@@ -1,6 +1,6 @@
 /* Service worker: makes the app installable and fully usable offline.
    Bump VERSION whenever you change any file so phones pick up the update. */
-const VERSION = 'tis-bcs-prep-v3.0.0';
+const VERSION = 'tis-bcs-prep-v3.1.0';
 const APP_CACHE = 'app-' + VERSION;
 const FONT_CACHE = 'fonts-v1';
 
@@ -71,6 +71,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.endsWith('.apk')) return; // large download: always straight from the network
 
   // App files: serve from cache instantly, fall back to network (and cache it).
   event.respondWith(caches.open(APP_CACHE).then(async (cache) => {

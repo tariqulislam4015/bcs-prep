@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+def buildNumber = Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
+// The signing key is NOT stored in the repository. The workflow writes it to
+// android/keystore/ from GitHub Secrets (or a temporary key) before building.
+def keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+
+android {
+    namespace 'com.tisacademy.bcsprep'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.tisacademy.bcsprep'
+        minSdk 24
+        targetSdk 34
+        versionCode buildNumber
+        versionName "3.1." + buildNumber
+    }
+
+    signingConfigs {
+        release {
+            storeFile rootProject.file("keystore/tis-release.jks")
+            storePassword keystorePassword
+            keyAlias "tis"
+            keyPassword keystorePassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

@@ -459,6 +459,17 @@ p.q-text { font-size: 1.02rem; margin-bottom: 12px; }
   .profile *, .pf-mini * { animation: none !important; transition: none !important; }
 }
 
+/* ---------- Android APK download ---------- */
+.apk-btn { background: #3ddc84; border-color: #2fbf6f; color: #073b1c; gap: 8px; }
+.apk-btn:hover:not(:disabled) { background: #34c876; border-color: #29a862; }
+.apk-btn svg { width: 20px; height: 20px; }
+.apk-btn[hidden], .apk-top[hidden] { display: none; }
+.apk-top { background: #3ddc84; border-color: #2fbf6f; color: #073b1c; }
+.apk-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; margin-bottom: 14px;
+  border: 1px dashed #2fbf6f; border-radius: var(--radius-sm); background: color-mix(in srgb, #3ddc84 10%, var(--surface)); }
+.apk-card > div { display: flex; flex-direction: column; gap: 2px; }
+.in-app .apk-card, .in-app [data-apk] { display: none !important; }
+
 /* ---------- PWA / mobile app ---------- */
 .update-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 16px; border-radius: var(--radius-sm); background: var(--info-bg); border: 1px solid var(--info-bd); color: var(--info-tx); }
 .update-bar[hidden], .install-btn[hidden] { display: none; }

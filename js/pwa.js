@@ -3,6 +3,10 @@
 (function () {
   'use strict';
   let deferredPrompt = null;
+  const isApp = () => !!window.AndroidBridge || /TISBCSApp/.test(navigator.userAgent);
+  const APK_LOCAL = 'downloads/TIS-BCS-Prep.apk';
+  const APK_RELEASE = 'https://github.com/tariqulislam4015/bcs-prep/releases/latest/download/TIS-BCS-Prep.apk';
+  let apkUrl = APK_LOCAL;
   const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -38,7 +42,7 @@
   function setupInstall() {
     const btn = document.getElementById('install-btn');
     if (!btn) return;
-    if (isStandalone()) { btn.hidden = true; return; }
+    if (isStandalone() || isApp()) { btn.hidden = true; return; }
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; btn.hidden = false; });
     window.addEventListener('appinstalled', () => { btn.hidden = true; deferredPrompt = null; UI.toast('App installed! Open it from your home screen.', 'success', 5000); });
     if (isIOS()) btn.hidden = false; // iOS has no install prompt — show instructions instead
@@ -72,14 +76,35 @@
     try { if ('wakeLock' in navigator && wantAwake && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) { /* not supported / denied */ }
   }
   function keepAwake(on) {
+    if (window.AndroidBridge && window.AndroidBridge.keepAwake) { window.AndroidBridge.keepAwake(!!on); return; }
     wantAwake = on;
     if (on) acquire(); else if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
   }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantAwake) acquire(); });
 
-  window.PWA = { keepAwake, isStandalone };
+  /* ---------- Android APK download links ---------- */
+  // Uses the APK published next to the LIVE site; falls back to the latest GitHub Release.
+  function setupApkLinks() {
+    if (isApp()) { document.documentElement.classList.add('in-app'); return; }
+    let checked = false;
+    const apply = () => { checked = true; document.querySelectorAll('[data-apk]').forEach(a => { if (a.getAttribute('href') !== apkUrl) a.href = apkUrl; if (a.hidden) a.hidden = false; }); };
+    if (location.protocol.startsWith('http')) {
+      fetch(APK_LOCAL, { method: 'HEAD', cache: 'no-store' })
+        .then(r => { if (!r.ok) apkUrl = APK_RELEASE; })
+        .catch(() => { apkUrl = APK_RELEASE; })
+        .finally(apply);
+    } else { apkUrl = APK_RELEASE; apply(); }
+    // views re-render; keep newly drawn buttons pointing at the right file
+    new MutationObserver(() => { if (checked) apply(); }).observe(document.body, { childList: true, subtree: true });
+  }
+  const apkButton = (cls = '') => isApp() ? '' : `<a class="btn apk-btn ${cls}" data-apk href="${APK_LOCAL}" download="TIS-BCS-Prep.apk" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.5 9.5H6.5a1 1 0 0 0-1 1V17a1.5 1.5 0 0 0 1.5 1.5h.5V21a1 1 0 0 0 2 0v-2.5h5V21a1 1 0 0 0 2 0v-2.5h.5A1.5 1.5 0 0 0 18.5 17v-6.5a1 1 0 0 0-1-1zM3.5 9.5a1 1 0 0 0-1 1v5a1 1 0 0 0 2 0v-5a1 1 0 0 0-1-1zm17 0a1 1 0 0 0-1 1v5a1 1 0 0 0 2 0v-5a1 1 0 0 0-1-1zM15.6 4.1l1-1.6a.3.3 0 0 0-.5-.3l-1 1.7a6.3 6.3 0 0 0-6.2 0l-1-1.7a.3.3 0 0 0-.5.3l1 1.6A5.4 5.4 0 0 0 6.5 8.5h11a5.4 5.4 0 0 0-1.9-4.4zM9.5 6.7a.7.7 0 1 1 0-1.4.7.7 0 0 1 0 1.4zm5 0a.7.7 0 1 1 0-1.4.7.7 0 0 1 0 1.4z"/></svg>
+      <span>Download Android App (APK)</span></a>`;
+
+  window.PWA = { keepAwake, isStandalone, isApp, apkButton };
   document.addEventListener('DOMContentLoaded', () => {
-    registerSW(); setupInstall(); persistStorage();
+    if (!isApp()) registerSW();
+    setupInstall(); persistStorage(); setupApkLinks();
     if (isStandalone()) document.documentElement.classList.add('standalone');
   });
 })();

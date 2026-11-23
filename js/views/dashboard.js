@@ -27,6 +27,10 @@
             <select id="dash-bcs" class="input input-lg">${App.bcsOptions(sel)}</select>
           </label>
           <div class="bcs-info" id="bcs-info">${sel ? bcsInfo(sel, cfg, counts[sel] || 0) : '<span class="muted">Select a BCS examination (10th–50th) to start Exam Mode or a BCS-specific practice session.</span>'}</div>
+          ${PWA.isApp() ? '' : `<div class="apk-card">
+            <div><b>📱 Android app</b><span class="muted small">Download and install the APK — works offline, no Play Store needed.</span></div>
+            ${PWA.apkButton()}
+          </div>`}
           <div class="mode-buttons">
             <button class="mode-btn mode-exam" data-act="exam">
               <span class="mode-icon" aria-hidden="true">⏱</span>
