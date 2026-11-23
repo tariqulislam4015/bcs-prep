@@ -153,7 +153,8 @@
       math: 'Focus more on Mathematics — practise percentage, ratio, profit-loss and algebra drills.',
       mental: 'Practise series, coding-decoding and direction problems under time limits.',
       geo: 'Revise Bangladesh geography, climate change agreements and disaster facts.',
-      ethics: 'Revise governance concepts and Bangladesh integrity institutions.'
+      ethics: 'Revise governance concepts and Bangladesh integrity institutions.',
+      special: 'Revise the Medical/Dental topics of the Special (Health) BCS.'
     };
 
     rated.filter(s => s.level.label === 'Weak').sort((a, b) => a.accuracy - b.accuracy)

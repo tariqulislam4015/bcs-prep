@@ -9,7 +9,8 @@
     const sel = App.selectedBcs;
     const counts = QBank.bcsCounts();
     const sampleCount = QBank.all().filter(q => q.source === 'sample').length;
-    const importedCount = QBank.all().length - sampleCount;
+    const prevCount = QBank.all().filter(q => q.bundled).length;
+    const importedCount = QBank.all().length - sampleCount - prevCount;
     const recent = Store.state.exams.slice().sort((a, b) => b.submittedAt - a.submittedAt).slice(0, 6);
     const cfg = sel ? App.examConfig(sel) : null;
 
@@ -44,13 +45,13 @@
         </div>
       </section>
 
-      ${importedCount === 0 ? `<div class="notice">
-        <b>About the question bank:</b> the ${sampleCount} bundled questions are <b>sample practice questions</b> in BCS syllabus style. They are not official questions from any particular BCS examination. Exam Mode builds a mock from them using the selected BCS's pattern.
-        To practise authentic previous questions, add them under <a href="#/settings">Settings → Import questions</a>. Imported questions keep their BCS number and can be marked <i>verified</i>.
-      </div>` : ''}
+      <div class="notice">
+        <b>Question bank:</b> ${prevCount.toLocaleString()} previous BCS preliminary questions from ${QBank.PAPERS.length} papers (10th–50th BCS, including Special BCS parts), plus ${sampleCount} sample practice questions.
+        Answers and explanations of previous papers are as given in the <i>BCS Preliminary Solve Sheet</i> (source: uttoron.academy). Questions whose formulas or figures couldn't be extracted were left out.
+      </div>
 
       <section class="kpis">
-        ${kpi('Questions available', o.totalAvailable, `${sampleCount} sample · ${importedCount} imported`)}
+        ${kpi('Questions available', o.totalAvailable.toLocaleString(), `${prevCount.toLocaleString()} previous BCS · ${sampleCount} sample${importedCount ? ' · ' + importedCount + ' imported' : ''}`)}
         ${kpi('Exams completed', o.examsCompleted, o.latest ? 'Last: ' + UI.fmtDate(o.latest.submittedAt, false) : 'No exams yet')}
         ${kpi('Average exam marks', o.avgExamPct == null ? '—' : UI.num(o.avgExamPct, 1) + '%', o.avgExamMarks == null ? 'Take an exam to see this' : 'Avg ' + UI.num(o.avgExamMarks) + ' marks')}
         ${kpi('Overall accuracy', o.all.attempted ? UI.num(o.all.accuracy, 1) + '%' : '—', `${o.all.correct} correct of ${o.all.attempted} attempted`)}
@@ -120,7 +121,7 @@
   function bcsInfo(bcs, cfg, official) {
     return `<div class="info-row">
       <span><b>${C.ordinal(bcs)} BCS</b> pattern: ${cfg.questions} questions · ${cfg.durationMin} min · +${cfg.correctMark} / −${cfg.negativeMark}${cfg.isCustom ? ' <span class="badge">custom</span>' : ''}</span>
-      <span>${official ? `<span class="badge src-verified">${official} official question(s) imported</span>` : '<span class="badge src-sample">No official questions imported — sample mock</span>'}</span>
+      <span>${official ? `<span class="badge src-previous">${official} previous questions · ${QBank.papersFor(bcs).length} paper(s)</span>` : '<span class="badge src-sample">No questions for this BCS — sample mock</span>'}</span>
     </div>`;
   }
   function kpi(label, value, sub) {

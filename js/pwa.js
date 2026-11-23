@@ -30,8 +30,9 @@
     }).catch((e) => console.warn('Service worker registration failed', e));
 
     let reloading = false;
+    const hadController = !!navigator.serviceWorker.controller; // first visit: no reload needed
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return;
+      if (reloading || !hadController) return;
       // never reload mid-exam; the new version is used next time the app opens
       if (window.Store && Store.state.activeExam) { UI.toast('Update installed — it will apply after your exam.', 'info'); return; }
       reloading = true; location.reload();

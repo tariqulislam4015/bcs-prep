@@ -14,12 +14,16 @@
 
   /* ============================ SETUP ============================ */
   Views.practiceSetup = function (host) {
-    const f = { source: (App.selectedBcs && QBank.forBcs(App.selectedBcs).length) ? 'bcs' : 'all', bcs: App.selectedBcs, subject: '', topic: '', status: '', order: 'seq', limit: '' };
+    const f = { source: (App.selectedBcs && QBank.forBcs(App.selectedBcs).length) ? 'bcs' : 'all', bcs: App.selectedBcs, paper: '', subject: '', topic: '', status: '', order: 'seq', limit: '' };
     const ps = Store.state.practiceSession;
 
     function pool() {
       const base = { subject: f.subject || undefined, topic: f.topic || undefined, status: f.status || undefined };
-      if (f.source === 'bcs') return f.bcs ? QBank.filter({ ...base, bcs: Number(f.bcs) }) : [];
+      if (f.source === 'bcs') {
+        if (!f.bcs) return [];
+        const list = QBank.filter({ ...base, bcs: Number(f.bcs) }).filter(q => !f.paper || (f.paper === '__imported' ? !q.paper : q.paper === f.paper));
+        return list.sort((a, b) => String(a.paper || '').localeCompare(String(b.paper || '')) || (a.qno || 0) - (b.qno || 0));
+      }
       if (f.source === 'sample') return QBank.filter({ ...base, source: 'sample' });
       return QBank.filter(base);
     }
@@ -43,6 +47,7 @@
               </div>
             </fieldset>
             ${f.source === 'bcs' ? `<label class="field"><span>BCS examination <b class="req">*</b></span><select class="input" id="p-bcs">${App.bcsOptions(f.bcs)}</select></label>
+              ${f.bcs && QBank.papersFor(Number(f.bcs)).length > 1 ? `<label class="field"><span>Question paper</span><select class="input" id="p-paper"><option value="">All papers of this BCS</option>${QBank.papersFor(Number(f.bcs)).map(p => `<option value="${esc(p.id)}" ${f.paper === p.id ? 'selected' : ''}>${esc(p.label)} (${p.count})</option>`).join('')}</select></label>` : ''}
               ${f.bcs && !QBank.forBcs(Number(f.bcs)).length ? `<p class="notice small">No questions are tagged with the ${C.ordinal(Number(f.bcs))} BCS yet. Import official questions in Settings, or practise from the whole bank / sample questions.</p>` : ''}` : ''}
             <div class="form-grid">
               <label class="field"><span>Subject</span><select class="input" id="p-sub">${App.subjectOptions(f.subject)}</select></label>
@@ -92,7 +97,8 @@
         let ids = pool().map(q => q.id);
         if (f.order === 'rand') ids = UI.shuffle(ids);
         const lim = Number(f.limit); if (lim > 0) ids = ids.slice(0, lim);
-        const parts = [f.source === 'bcs' ? C.ordinal(Number(f.bcs)) + ' BCS' : f.source === 'sample' ? 'Sample questions' : 'Whole bank'];
+        const pp = f.paper && QBank.papersFor(Number(f.bcs)).find(p => p.id === f.paper);
+        const parts = [f.source === 'bcs' ? (pp ? pp.label : C.ordinal(Number(f.bcs)) + ' BCS') : f.source === 'sample' ? 'Sample questions' : 'Whole bank'];
         if (f.subject) parts.push(C.subjectByKey[f.subject].short);
         if (f.topic) parts.push(f.topic);
         if (f.status) parts.push(f.status);
@@ -101,7 +107,8 @@
     });
     host.addEventListener('change', (e) => {
       const id = e.target.id;
-      if (id === 'p-bcs') { f.bcs = e.target.value ? Number(e.target.value) : null; if (f.bcs) App.selectedBcs = f.bcs; draw(); }
+      if (id === 'p-bcs') { f.bcs = e.target.value ? Number(e.target.value) : null; f.paper = ''; if (f.bcs) App.selectedBcs = f.bcs; draw(); }
+      else if (id === 'p-paper') { f.paper = e.target.value; updateCount(); }
       else if (id === 'p-sub') { f.subject = e.target.value; f.topic = ''; draw(); }
       else if (id === 'p-top') { f.topic = e.target.value; updateCount(); }
       else if (id === 'p-st') { f.status = e.target.value; updateCount(); }
@@ -171,7 +178,7 @@
             <span class="q-num">Question ${ps.idx + 1} of ${ps.ids.length}</span>
             <span class="badge subj">${esc(C.subjectByKey[q.subject].short)}</span>
             <span class="muted small">${esc(q.topic)}</span>
-            ${q.bcs ? `<span class="badge">${C.ordinal(q.bcs)} BCS</span>` : ''}
+            ${q.bcs ? `<span class="badge">${q.paperLabel ? esc(q.paperLabel) : C.ordinal(q.bcs) + ' BCS'}</span>` : ''}${q.autoSubject ? '<span class="badge" title="This paper has no subject headings; the subject was assigned automatically">auto subject</span>' : ''}
             ${UI.sourceBadge(q)}
             <span class="spacer"></span>
             <button class="icon-btn bm ${App.isBookmarked(id) ? 'on' : ''}" data-a="bm" title="Bookmark this question" aria-label="Bookmark">★</button>
@@ -209,13 +216,16 @@
       const marks = c * pm.correctMark - w * pm.negativeMark;
       host.querySelector('#p-sess').innerHTML = mini('Attempted', `${a}/${ps.ids.length}`) + mini('Correct', c, 't-good') + mini('Wrong', w, 't-bad') +
         mini('Unattempted', ps.ids.length - a) + mini('Marks', UI.num(marks)) + mini('Accuracy', a ? UI.num(c / a * 100, 1) + '%' : '—');
-      host.querySelector('#p-pal').innerHTML = ps.ids.map((id, i) => {
+      // very large sessions: draw only a window of the palette so the page stays fast
+      const W0 = ps.ids.length > 300 ? Math.max(0, ps.idx - 60) : 0;
+      const W1 = ps.ids.length > 300 ? Math.min(ps.ids.length, W0 + 200) : ps.ids.length;
+      host.querySelector('#p-pal').innerHTML = (W0 > 0 ? `<button class="pal" data-go="${Math.max(0, W0 - 100)}" title="Earlier questions">…</button>` : '') + ps.ids.slice(W0, W1).map((id, j) => { const i = W0 + j;
         const at = P.attempts[id], r = ps.reveal[id];
         let st = 'unvisited';
         if (at) st = (r && r.ans) ? (at.ok ? 'correct' : 'wrong') : 'attempted';
         else if (ps.sel[id] != null) st = 'selected';
         return `<button class="pal p-${st} ${i === ps.idx ? 'current' : ''}" data-go="${i}">${i + 1}</button>`;
-      }).join('');
+      }).join('') + (W1 < ps.ids.length ? `<button class="pal" data-go="${Math.min(ps.ids.length - 1, W1)}" title="Later questions">…</button>` : '');
     }
 
     function redraw() { Store.save(); drawQ(); drawSide(); }

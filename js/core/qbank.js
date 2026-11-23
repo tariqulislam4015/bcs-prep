@@ -13,9 +13,22 @@
     };
   }
 
+  // Previous BCS questions bundled with the app (js/data/questions.official.js)
+  const PAPERS = window.BCS_PAPERS || [];
+  const SOLVE_SHEET_NOTE = 'BCS Preliminary Solve Sheet (10th–50th) — উৎস: uttoron.academy';
+  function normalizeOfficial(r) {
+    const p = PAPERS[r.p] || {};
+    return {
+      id: r.id, bcs: p.bcs, paper: p.id, paperLabel: p.label, qno: r.n, subject: r.s, topic: r.t || 'General',
+      question: r.q, options: r.o, answer: r.a, explanation: r.e || '', source: 'official', verified: false,
+      bundled: true, autoSubject: !!r.x, sourceNote: SOLVE_SHEET_NOTE
+    };
+  }
+
   function rebuild() {
     const map = new Map();
     for (const r of (window.BCS_SAMPLE_QUESTIONS || [])) map.set(r.id, normalizeSample(r));
+    for (const r of (window.BCS_OFFICIAL_QUESTIONS || [])) map.set(r.id, normalizeOfficial(r));
     for (const q of (Store.state.imported || [])) map.set(q.id, q); // imported may override same id
     const list = Array.from(map.values());
     const order = Object.fromEntries(C.SUBJECTS.map((s, i) => [s.key, i]));
@@ -47,6 +60,23 @@
   }
 
   function forBcs(bcs) { return all().filter(q => q.bcs === bcs); }
+
+  // Question papers available for one BCS: bundled papers + a group for the user's own imports.
+  function papersFor(bcs) {
+    const out = [];
+    for (const p of PAPERS) {
+      if (p.bcs !== bcs) continue;
+      const n = all().filter(q => q.paper === p.id).length;
+      if (n) out.push({ id: p.id, label: p.label, count: n, special: p.special });
+    }
+    const own = all().filter(q => q.bcs === bcs && !q.paper).length;
+    if (own) out.push({ id: '__imported', label: 'Your imported questions', count: own });
+    return out;
+  }
+  function forPaper(bcs, paperId) {
+    const list = paperId === '__imported' ? all().filter(q => q.bcs === bcs && !q.paper) : all().filter(q => q.paper === paperId);
+    return list.slice().sort((a, b) => (a.qno || 0) - (b.qno || 0) || String(a.id).localeCompare(String(b.id)));
+  }
   function generalPool() { return all().filter(q => !q.bcs); }
 
   /* -------- filtering (used by Question Bank and Practice setup) -------- */
@@ -61,8 +91,10 @@
       if (f.subject && q.subject !== f.subject) return false;
       if (f.topic && q.topic !== f.topic) return false;
       if (f.source === 'sample' && q.source !== 'sample') return false;
+      if (f.source === 'previous' && !q.bundled) return false;
+      if (f.paper && q.paper !== f.paper) return false;
       if (f.source === 'verified' && !(q.source !== 'sample' && q.verified)) return false;
-      if (f.source === 'unverified' && !(q.source !== 'sample' && !q.verified)) return false;
+      if (f.source === 'unverified' && !(q.source !== 'sample' && !q.bundled && !q.verified)) return false;
       const at = attempts[q.id];
       if (f.status === 'attempted' && !at) return false;
       if (f.status === 'unattempted' && at) return false;
@@ -195,5 +227,5 @@
 
   function clearImported() { Store.state.imported = []; Store.save(); rebuild(); }
 
-  window.QBank = { all, get, topics, countBySubject, bcsCounts, forBcs, generalPool, filter, parseImport, addImported, clearImported, rebuild, parseCSV };
+  window.QBank = { all, get, topics, countBySubject, bcsCounts, forBcs, papersFor, forPaper, PAPERS, generalPool, filter, parseImport, addImported, clearImported, rebuild, parseCSV };
 })();

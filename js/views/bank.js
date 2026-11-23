@@ -28,7 +28,7 @@
             <select class="input" id="b-sub">${App.subjectOptions(f.subject)}</select>
             <select class="input" id="b-top">${App.topicOptions(f.subject || null, f.topic)}</select>
             <select class="input" id="b-src">
-              ${[['', 'Any source'], ['sample', 'Sample questions'], ['verified', 'Official · verified'], ['unverified', 'Imported · unverified']].map(([k, l]) => `<option value="${k}" ${f.source === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+              ${[['', 'Any source'], ['previous', 'Previous BCS papers'], ['sample', 'Sample questions'], ['verified', 'Imported · verified'], ['unverified', 'Imported · unverified']].map(([k, l]) => `<option value="${k}" ${f.source === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
             <select class="input" id="b-st">
               ${[['', 'Any status'], ['bookmarked', 'Bookmarked'], ['attempted', 'Attempted (practice)'], ['unattempted', 'Not attempted'], ['correct', 'Answered correctly'], ['wrong', 'Answered wrongly']].map(([k, l]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
           </div>
@@ -48,7 +48,7 @@
           const a = at[q.id], isOpen = open.has(q.id);
           return `<article class="bank-item card">
             <div class="q-meta"><code class="qid">${esc(q.id)}</code><span class="badge subj">${esc(C.subjectByKey[q.subject].short)}</span><span class="muted small">${esc(q.topic)}</span>
-              ${q.bcs ? `<span class="badge">${C.ordinal(q.bcs)} BCS</span>` : ''}${UI.sourceBadge(q)}
+              ${q.bcs ? `<span class="badge">${q.paperLabel ? esc(q.paperLabel) : C.ordinal(q.bcs) + ' BCS'}</span>` : ''}${UI.sourceBadge(q)}
               ${a ? `<span class="badge ${a.ok ? 'st-correct' : 'st-wrong'}">Practice: ${a.ok ? 'correct' : 'wrong'}</span>` : ''}
               <span class="spacer"></span>
               <button class="icon-btn bm ${App.isBookmarked(q.id) ? 'on' : ''}" data-bm="${esc(q.id)}" title="Bookmark">★</button></div>

@@ -1,6 +1,6 @@
 /* Service worker: makes the app installable and fully usable offline.
    Bump VERSION whenever you change any file so phones pick up the update. */
-const VERSION = 'tis-bcs-prep-v3.1.0';
+const VERSION = 'tis-bcs-prep-v4.0.0';
 const APP_CACHE = 'app-' + VERSION;
 const FONT_CACHE = 'fonts-v1';
 
@@ -11,6 +11,7 @@ const APP_FILES = [
   './css/styles.css',
   './js/data/config.js',
   './js/data/questions.sample.js',
+  './js/data/questions.official.js',
   './js/core/ui.js',
   './js/core/storage.js',
   './js/core/qbank.js',

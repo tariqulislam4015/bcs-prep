@@ -17,7 +17,7 @@
       const counts = QBank.bcsCounts();
       let html = `<option value="">${UI.esc(placeholder)}</option>`;
       for (let n = C.BCS_MIN; n <= C.BCS_MAX; n++) {
-        const extra = counts[n] ? ` — ${counts[n]} official Qs imported` : '';
+        const extra = counts[n] ? ` — ${counts[n]} questions` : '';
         html += `<option value="${n}" ${Number(selected) === n ? 'selected' : ''}>${C.ordinal(n)} BCS${extra}</option>`;
       }
       return html;

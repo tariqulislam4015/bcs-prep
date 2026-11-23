@@ -119,6 +119,7 @@
 
   function sourceBadge(q) {
     if (q.source === 'sample') return '<span class="badge src-sample" title="Sample practice question — not an official BCS question">Sample</span>';
+    if (q.bundled) return `<span class="badge src-previous" title="Previous BCS question${q.qno ? ' no. ' + q.qno : ''} — answer and explanation as given in the BCS Preliminary Solve Sheet (uttoron.academy)">Previous BCS${q.qno ? ' · Q' + q.qno : ''}</span>`;
     if (q.verified) return '<span class="badge src-verified" title="Imported and marked verified by you">Official · Verified</span>';
     if (q.bcs) return '<span class="badge src-unverified" title="Imported with a BCS number but not marked verified">Official · Unverified</span>';
     return '<span class="badge src-imported">Imported</span>';

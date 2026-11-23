@@ -46,21 +46,23 @@
 
     function draw() {
       const cfg = bcs ? App.examConfig(bcs) : null;
-      const official = bcs ? QBank.forBcs(bcs) : [];
+      const papers = bcs ? QBank.papersFor(bcs) : [];
       const general = QBank.generalPool();
       host.innerHTML = `
         <div class="page-head"><h1>Exam Mode</h1><p class="muted">A realistic, timed BCS preliminary simulation.</p></div>
         <div class="card">
           <label class="field"><span>BCS examination <b class="req">*</b></span>
             <select id="ex-bcs" class="input input-lg">${App.bcsOptions(bcs)}</select></label>
-          ${bcs ? setupBody(cfg, official, general) : '<p class="muted">Select a BCS examination to configure the exam.</p>'}
+          ${bcs ? setupBody(cfg, papers, general) : '<p class="muted">Select a BCS examination to configure the exam.</p>'}
         </div>`;
       host.querySelector('#ex-bcs').addEventListener('change', (e) => { bcs = e.target.value ? Number(e.target.value) : null; App.selectedBcs = bcs; draw(); });
       if (!bcs) return;
 
       const srcRadios = host.querySelectorAll('input[name="src"]');
       const nEl = host.querySelector('#ex-n'), dEl = host.querySelector('#ex-d');
-      const maxFor = () => (host.querySelector('input[name="src"]:checked').value === 'official' ? official.length : general.length);
+      const srcVal = () => host.querySelector('input[name="src"]:checked').value;
+      const paperOf = (v) => papers.find(p => 'paper:' + p.id === v);
+      const maxFor = () => { const p = paperOf(srcVal()); return p ? p.count : general.length; };
       const refresh = (resetN) => {
         const max = maxFor();
         nEl.max = max;
@@ -73,8 +75,14 @@
       const updateBlueprint = () => {
         const bp = host.querySelector('#ex-bp');
         if (!bp) return;
-        const isOfficial = host.querySelector('input[name="src"]:checked').value === 'official';
-        if (isOfficial) { bp.innerHTML = `<p class="muted">The ${official.length} imported questions of the ${C.ordinal(bcs)} BCS are shown in their saved order.</p>`; return; }
+        const p = paperOf(srcVal());
+        if (p) {
+          const by = {}; for (const q of QBank.forPaper(bcs, p.id)) by[q.subject] = (by[q.subject] || 0) + 1;
+          bp.innerHTML = `<p class="muted small">Questions appear in the original order of the question paper. If you choose fewer, a random selection is used.</p>
+            <table class="table compact"><thead><tr><th>Subject</th><th class="num">Questions</th></tr></thead><tbody>
+            ${C.SUBJECTS.filter(s => by[s.key]).map(s => `<tr><td>${esc(s.en)}</td><td class="num">${by[s.key]}</td></tr>`).join('')}</tbody></table>`;
+          return;
+        }
         const n = Math.max(1, Math.min(general.length, Number(nEl.value) || 1));
         const { quota } = buildSampleSet(n);
         bp.innerHTML = `<table class="table compact"><thead><tr><th>Subject</th><th class="num">Blueprint (of 200)</th><th class="num">This mock</th></tr></thead><tbody>
@@ -86,7 +94,7 @@
       refresh(true);
 
       host.querySelector('#ex-start').addEventListener('click', async () => {
-        const src = host.querySelector('input[name="src"]:checked').value;
+        const src = srcVal(); const paper = paperOf(src);
         const max = maxFor();
         const n = Math.floor(Number(nEl.value));
         const dur = Number(dEl.value);
@@ -97,16 +105,21 @@
         if (!(cm > 0) || !(nm >= 0)) return UI.toast('Marks must be positive (negative mark may be 0).', 'error');
         const ok = await UI.confirmModal({
           title: 'Start examination?',
-          body: `<p><b>${C.ordinal(bcs)} BCS</b> — ${src === 'official' ? 'imported official questions' : 'sample mock'}</p>
+          body: `<p><b>${paper ? esc(paper.label) : C.ordinal(bcs) + ' BCS — sample mock'}</b></p>
                  <ul class="plain"><li>${n} questions · ${dur} minutes</li><li>Correct +${cm} · Wrong −${nm} · Unanswered 0</li>
                  <li>The timer keeps running if you leave or refresh the page. The exam submits automatically when time runs out.</li></ul>`,
           confirmText: 'Start now'
         });
         if (!ok) return;
-        const ids = src === 'official' ? official.map(q => q.id).slice(0, n) : buildSampleSet(n).ids;
+        let ids;
+        if (paper) {
+          const all = QBank.forPaper(bcs, paper.id);
+          const pick = n >= all.length ? all : UI.shuffle(all).slice(0, n).sort((a, b) => (a.qno || 0) - (b.qno || 0));
+          ids = pick.map(q => q.id);
+        } else ids = buildSampleSet(n).ids;
         const now = Date.now();
         Store.state.activeExam = {
-          id: UI.uid('exam'), bcs, source: src, isSample: src !== 'official',
+          id: UI.uid('exam'), bcs, source: paper ? 'official' : 'sample', isSample: !paper, paperLabel: paper ? paper.label : null,
           qids: ids, config: { questions: ids.length, durationMin: dur, correctMark: cm, negativeMark: nm },
           startedAt: now, endAt: now + dur * 60000, answers: {}, marked: [], visited: [ids[0]], idx: 0
         };
@@ -115,18 +128,19 @@
       });
     }
 
-    function setupBody(cfg, official, general) {
-      const hasOfficial = official.length > 0;
+    function setupBody(cfg, papers, general) {
+      const has = papers.length > 0;
       return `
         <div class="info-row"><span><b>${C.ordinal(bcs)} BCS</b> configured pattern: ${cfg.questions} questions · ${cfg.durationMin} min · +${cfg.correctMark} / −${cfg.negativeMark}</span>
           <a class="link" href="#/settings">Change defaults</a></div>
         <p class="muted small">${esc(cfg.note)}</p>
-        <fieldset class="field"><legend>Question source</legend>
-          <label class="radio ${hasOfficial ? '' : 'disabled'}"><input type="radio" name="src" value="official" ${hasOfficial ? 'checked' : 'disabled'}>
-            Official questions of the ${C.ordinal(bcs)} BCS <span class="muted">(${official.length} imported${official.some(q => !q.verified) ? ', some unverified' : ''})</span></label>
-          <label class="radio"><input type="radio" name="src" value="sample" ${hasOfficial ? '' : 'checked'}>
-            Sample mock exam in the ${C.ordinal(bcs)} BCS pattern <span class="muted">(${general.length} sample/practice questions available)</span></label>
-          ${hasOfficial ? '' : '<p class="notice small">No official questions have been imported for this BCS, so the exam uses <b>sample practice questions</b>. It is labelled a mock. Import official questions under Settings.</p>'}
+        <fieldset class="field"><legend>Question paper</legend>
+          ${papers.map((p, i) => `<label class="radio"><input type="radio" name="src" value="paper:${esc(p.id)}" ${i === 0 ? 'checked' : ''}>
+            <span><b>${esc(p.label)}</b> <span class="muted">— ${p.count} questions${p.id === '__imported' ? '' : ' (previous BCS paper)'}</span></span></label>`).join('')}
+          <label class="radio"><input type="radio" name="src" value="sample" ${has ? '' : 'checked'}>
+            <span>Sample mock exam in the ${C.ordinal(bcs)} BCS pattern <span class="muted">(${general.length} sample/practice questions)</span></span></label>
+          ${has ? '<p class="muted small">Previous-paper questions come from the BCS Preliminary Solve Sheet. A few questions with formulas or figures could not be extracted, so a paper may have slightly fewer questions than the original.</p>'
+                : '<p class="notice small">No questions are available for this BCS yet, so the exam uses <b>sample practice questions</b> and is labelled a mock.</p>'}
         </fieldset>
         <div class="form-grid">
           <label class="field"><span>Number of questions (max <span id="ex-max"></span>)</span><input id="ex-n" type="number" min="1" class="input"></label>
@@ -152,7 +166,7 @@
 
     host.innerHTML = `
       <div class="exam-top card">
-        <div class="exam-title"><b>${C.ordinal(ax.bcs)} BCS ${ax.isSample ? '— Mock (sample questions)' : '— Preliminary'}</b>
+        <div class="exam-title"><b>${ax.paperLabel ? esc(ax.paperLabel) : C.ordinal(ax.bcs) + ' BCS'} ${ax.isSample ? '— Mock (sample questions)' : '— Preliminary'}</b>
           <span class="muted small">+${ax.config.correctMark} / −${ax.config.negativeMark} · ${total} questions</span></div>
         <div class="exam-progress"><div id="ex-prog-text" class="small"></div><div id="ex-prog"></div></div>
         <div class="timer" id="ex-timer" aria-live="off" title="Time remaining">--:--</div>
@@ -301,14 +315,14 @@
       const sel = ax.answers[id] != null ? ax.answers[id] : null;
       const it = { id, s: q ? q.subject : 'bangla', t: q ? q.topic : 'Unknown', a: q ? q.answer : -1, sel, ok: sel == null ? null : (q ? sel === q.answer : false) };
       // keep a copy of non-bundled questions so the review still works if imports are removed later
-      if (q && q.source !== 'sample') it.snap = { question: q.question, options: q.options, explanation: q.explanation, topic: q.topic, source: q.source, verified: q.verified, bcs: q.bcs };
+      if (q && q.source !== 'sample' && !q.bundled) it.snap = { question: q.question, options: q.options, explanation: q.explanation, topic: q.topic, source: q.source, verified: q.verified, bcs: q.bcs };
       return it;
     });
     const rec = {
       id: ax.id, bcs: ax.bcs, source: ax.source, isSample: ax.isSample, config: ax.config,
       startedAt: ax.startedAt, submittedAt: Math.min(now, ax.endAt),
       timeTakenSec: Math.round((Math.min(now, ax.endAt) - ax.startedAt) / 1000),
-      autoSubmitted: !!auto, marked: ax.marked.slice(), items
+      autoSubmitted: !!auto, marked: ax.marked.slice(), paperLabel: ax.paperLabel || null, items
     };
     rec.summary = Stats.summarizeExam(rec);
     Store.state.exams.push(rec);
@@ -335,7 +349,7 @@
 
     host.innerHTML = `
       <div class="page-head row">
-        <div><h1>Result — ${C.ordinal(rec.bcs)} BCS ${rec.isSample ? '<span class="badge src-sample">Mock · sample questions</span>' : ''}</h1>
+        <div><h1>Result — ${rec.paperLabel ? esc(rec.paperLabel) : C.ordinal(rec.bcs) + ' BCS'} ${rec.isSample ? '<span class="badge src-sample">Mock · sample questions</span>' : ''}</h1>
           <p class="muted">Submitted ${UI.fmtDate(rec.submittedAt)}${rec.autoSubmitted ? ' (auto-submitted when time ran out)' : ''}</p></div>
         <div class="actions">
           <button class="btn" data-r="practice-wrong">Practise wrong &amp; unanswered</button>
@@ -442,7 +456,7 @@
         <div class="card">${list.length ? `<div class="table-wrap"><table class="table">
           <thead><tr><th>Date</th><th>BCS</th><th>Type</th><th class="num">Qs</th><th class="num">Correct</th><th class="num">Wrong</th><th class="num">Unans.</th><th class="num">Marks</th><th class="num">%</th><th class="num">Accuracy</th><th>Time</th><th></th></tr></thead>
           <tbody>${list.map(e => `<tr>
-            <td>${UI.fmtDate(e.submittedAt)}</td><td>${C.ordinal(e.bcs)}</td><td>${e.isSample ? '<span class="badge src-sample">Mock</span>' : '<span class="badge src-verified">Official</span>'}</td>
+            <td>${UI.fmtDate(e.submittedAt)}</td><td>${e.paperLabel ? esc(e.paperLabel) : C.ordinal(e.bcs)}</td><td>${e.isSample ? '<span class="badge src-sample">Mock</span>' : '<span class="badge src-previous">Previous paper</span>'}</td>
             <td class="num">${e.summary.total}</td><td class="num t-good">${e.summary.correct}</td><td class="num t-bad">${e.summary.wrong}</td><td class="num">${e.summary.skipped}</td>
             <td class="num"><b>${UI.num(e.summary.marks)}</b> / ${UI.num(e.summary.maxMarks)}</td><td class="num">${UI.num(e.summary.pct, 1)}%</td><td class="num">${UI.num(e.summary.accuracy, 1)}%</td>
             <td>${UI.fmtDuration(e.timeTakenSec)}</td>

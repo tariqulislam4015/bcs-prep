@@ -17,7 +17,9 @@
     { key: 'math',       en: 'Mathematical Reasoning',                            bn: 'গাণিতিক যুক্তি',                          short: 'Mathematics', marks: 15 },
     { key: 'mental',     en: 'Mental Ability',                                    bn: 'মানসিক দক্ষতা',                           short: 'Mental Ability', marks: 15 },
     { key: 'geo',        en: 'Geography, Environment and Disaster Management',    bn: 'ভূগোল, পরিবেশ ও দুর্যোগ ব্যবস্থাপনা',      short: 'Geography',   marks: 10 },
-    { key: 'ethics',     en: 'Ethics, Values and Good Governance',                bn: 'নৈতিকতা, মূল্যবোধ ও সুশাসন',              short: 'Ethics',      marks: 10 }
+    { key: 'ethics',     en: 'Ethics, Values and Good Governance',                bn: 'নৈতিকতা, মূল্যবোধ ও সুশাসন',              short: 'Ethics',      marks: 10 },
+    // Medical / Dental parts of the Special (Health) BCS — not part of the general 200-mark blueprint
+    { key: 'special',    en: 'Special BCS — Medical / Dental',                    bn: 'বিশেষ বিসিএস — মেডিকেল / ডেন্টাল',          short: 'Medical/Dental', marks: 0 }
   ];
 
   const BCS_MIN = 10;

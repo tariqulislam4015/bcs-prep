@@ -178,6 +178,8 @@ select.input { cursor: pointer; }
 .src-verified { background: var(--ok-bg); border-color: var(--ok-bd); color: var(--ok-tx); }
 .src-unverified { background: var(--info-bg); border-color: var(--info-bd); color: var(--info-tx); }
 .src-imported { background: var(--surface-2); }
+.src-previous { background: color-mix(in srgb, #7c3aed 12%, var(--surface)); border-color: #8b5cf6; color: #6d28d9; }
+[data-theme="dark"] .src-previous { color: #c4b5fd; }
 .lvl-strong { background: var(--ok-bg); border-color: var(--c-strong); color: var(--ok-tx); }
 .lvl-good { background: color-mix(in srgb, var(--c-good) 14%, transparent); border-color: var(--c-good); color: var(--c-good); }
 .lvl-average { background: var(--warn-bg); border-color: var(--c-average); color: var(--warn-tx); }
